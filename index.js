@@ -1,5 +1,3 @@
-const Alphabet = {};
-
 const consonants = [
 	'm',
 	'n',
@@ -21,44 +19,55 @@ const vowels = [
 	'a'
 ];
 
-function makeWord() {
-	let length = getRandomInt(3, 10);
+function addLetter(word) {
+	const last = word[word.length - 1];
+
+	let areLastTwoConsonants = false;
+	if (word.length > 1) {
+		areLastTwoConsonants =
+			consonants.includes(word[word.length - 2])
+			&& consonants.includes(last);
+	}
+
+	let isLastVowel = vowels.includes(last);
+
+	let c = '';
+	if (!isLastVowel && (getRandomBoolean() || areLastTwoConsonants)) {
+		c = getRandomElement(vowels);
+	} else {
+		c = getRandomElement(consonants, last);
+	}
+
+	return word + c;
+}
+
+function makeWord(length, badEndings = []) {
 	let str = '';
 
 	if (getRandomBoolean()) {
 		str += getRandomElement(vowels);
+		str += getRandomElement(consonants);
 	} else {
 		str += getRandomElement(consonants);
-	}
-
-	let isLastVowel = vowels.includes(str[str.length - 1]);
-	if (!isLastVowel) {
 		str += getRandomElement(vowels);
-	} else {
-		str += getRandomElement(consonants);
 	}
 
-	while(str.length < length) {
-		let areLastTwoConsonants =
-			consonants.includes(str[str.length - 2])
-			&& consonants.includes(str[str.length - 1]);
+	let word;
+	do {
+		word = finishWord(str, length);
+	} while(hasEndings(str, badEndings));
 
-		let isLastVowel = vowels.includes(str[str.length - 1]);
+	return word;
+}
 
-		let c = '';
-		if (!isLastVowel && (getRandomBoolean() || areLastTwoConsonants)) {
-			c = getRandomElement(vowels);
-		} else {
-			c = getRandomElement(consonants);
-		}
-
-		if (str[str.length - 1] !== c) {
-			str += c;
-		}
+function finishWord(word, length) {
+	while(word.length < length - 1) {
+		word = addLetter(word);
 	}
 
-	while(str.length <= length) {
-		let isLastVowel = vowels.includes(str[str.length - 1]);
+	// so last two letters are not consonants
+	while(word.length < length) {
+		let isLastVowel = vowels.includes(word[word.length - 1]);
 
 		let c = '';
 		if (!isLastVowel) {
@@ -67,16 +76,28 @@ function makeWord() {
 			c = getRandomElement(consonants);
 		}
 
-		if (str[str.length - 1] !== c) {
-			str += c;
+		if (word[word.length - 1] !== c) {
+			word += c;
 		}
 	}
 
-	return str;
+	return word;
 }
 
-function getRandomElement(array) {
-	return array[getRandomInt(array.length)];
+function hasEndings(word, badEndings) {
+	let has = false;
+	badEndings.forEach((ending) => {
+		has = has || word.endsWith(ending);
+	});
+	return has;
+}
+
+function getRandomElement(array, except = null) {
+	let c;
+	do {
+		c = array[getRandomInt(array.length)];
+	} while(c === except);
+	return c;
 }
 
 function getRandomInt(min, max = null /*exclusive*/) {
@@ -92,6 +113,29 @@ function getRandomBoolean() {
 	return Math.random() < .5;
 }
 
-for(let i = 0; i < 1; i++) {
-	console.log(makeWord());
+function makeNoun(length) {
+	return makeWord(length, ['na']);
 }
+
+function makeVerb(length) {
+	return makeWord(length, ['ta', 'sat', 'za', 'ma', 'to', 'ab']);
+}
+
+let type = process.argv.length > 2 ? process.argv[2] : null;
+if (!['noun', 'verb'].includes(type)) {
+	console.log('NOT VALID TYPE');
+	process.exit(1);
+}
+let length = process.argv.length > 3 ? process.argv[3] : getRandomInt(3, 10);
+
+let word;
+
+switch (type) {
+	case 'noun':
+		word = makeNoun(length);
+		break;
+	case 'verb':
+		word = makeVerb(length);
+		break;
+}
+console.log(word);
