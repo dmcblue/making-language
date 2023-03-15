@@ -122,6 +122,10 @@ function makeVerb(length) {
 }
 
 let type = process.argv.length > 2 ? process.argv[2] : null;
+if (type === 'help') {
+	console.log('node index.js <noun,verb> <length>');
+	process.exit();
+}
 if (!['noun', 'verb'].includes(type)) {
 	console.log('NOT VALID TYPE');
 	process.exit(1);
