@@ -121,25 +121,51 @@ function makeVerb(length) {
 	return makeWord(length, ['ta', 'sat', 'za', 'ma', 'to', 'ab']);
 }
 
-let type = process.argv.length > 2 ? process.argv[2] : null;
-if (type === 'help') {
-	console.log('node index.js <noun,verb> <length>');
+function getArg(num) {
+	return process.argv.length > num ? process.argv[num] : null;
+}
+
+let action = getArg(2);
+if (action === 'help') {
+	console.log('node index.js make <Amount> <noun,verb> <min length> <max length>');
 	process.exit();
 }
+if (action !== 'make') {
+	console.log('Unknown action');
+	process.exit(1);
+}
+let amount = parseInt(getArg(3));
+if (!Number.isInteger(amount)) {
+	console.log(`'${amount}' is not an integer`);
+	process.exit(1);
+}
+let type = getArg(4);
 if (!['noun', 'verb'].includes(type)) {
 	console.log('NOT VALID TYPE');
 	process.exit(1);
 }
-let length = process.argv.length > 3 ? process.argv[3] : getRandomInt(3, 10);
-
-let word;
+// let length = process.argv.length > 3 ? process.argv[3] : getRandomInt(3, 10);
+let minLength = parseInt(getArg(5));
+let maxLength = parseInt(getArg(6));
+if (!Number.isInteger(minLength)) {
+	console.log(`'${minLength}' is not an integer`);
+	process.exit(1);
+}
+if (!Number.isInteger(maxLength)) {
+	console.log(`'${maxLength}' is not an integer`);
+	process.exit(1);
+}
+let fun;
 
 switch (type) {
 	case 'noun':
-		word = makeNoun(length);
+		fun = makeNoun;
 		break;
 	case 'verb':
-		word = makeVerb(length);
+		fun = makeVerb;
 		break;
 }
-console.log(word);
+
+for(let i = 0; i < amount; i++) {
+	console.log(fun(getRandomInt(minLength, maxLength + 1)));
+}
