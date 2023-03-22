@@ -52,10 +52,20 @@ function makeWord(length, badEndings = []) {
 		str += getRandomElement(vowels);
 	}
 
-	let word;
+	// no hope, bail
+	if (str.length === length && badEndings.includes(str)) {
+		return str;
+	}
+
+	let word, count = 0;
 	do {
 		word = finishWord(str, length);
-	} while(hasEndings(str, badEndings));
+		count++;
+	} while(hasEndings(str, badEndings) && count < 100);
+
+	if (count === 100) {
+		console.log(`Inf Loop for '${str}' '${length}'`); 
+	}
 
 	return word;
 }
@@ -121,6 +131,10 @@ function makeVerb(length) {
 	return makeWord(length, ['ta', 'sat', 'za', 'ma', 'to', 'ab']);
 }
 
+function makeAdj(length) {
+	return makeWord(length, []);
+}
+
 function getArg(num) {
 	return process.argv.length > num ? process.argv[num] : null;
 }
@@ -140,11 +154,11 @@ if (!Number.isInteger(amount)) {
 	process.exit(1);
 }
 let type = getArg(4);
-if (!['noun', 'verb'].includes(type)) {
+if (!['noun', 'verb', 'adj'].includes(type)) {
 	console.log('NOT VALID TYPE');
 	process.exit(1);
 }
-// let length = process.argv.length > 3 ? process.argv[3] : getRandomInt(3, 10);
+
 let minLength = parseInt(getArg(5));
 let maxLength = parseInt(getArg(6));
 if (!Number.isInteger(minLength)) {
@@ -164,6 +178,8 @@ switch (type) {
 	case 'verb':
 		fun = makeVerb;
 		break;
+	case 'adj':
+		fun = makeAdj;
 }
 
 for(let i = 0; i < amount; i++) {
