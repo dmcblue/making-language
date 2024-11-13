@@ -56,6 +56,7 @@ const
 
 const Actions = Object.freeze({
 	HELP: 'help',
+	CONJUGATE: 'conj',
 	MAKE: 'make'
 });
 
@@ -80,6 +81,10 @@ ACTION make <NUM_WORDS> <TYPE> <MIN_LENGTH> <MAX_LENGTH>
 	TYPE	${Object.values(Types).join(',')}
 	MIN_LENGTH Minimum length in characters of each word
 	MAX_LENGTH Maximum length in characters of each word
+
+ACTION conj <STEM>
+	Given a stem, outputs all conjugations
+	STEM The stem of the proposed verb
 `
 	);
 }
@@ -87,7 +92,25 @@ ACTION make <NUM_WORDS> <TYPE> <MIN_LENGTH> <MAX_LENGTH>
 let action = getArgWithin(2, ACTION, Object.values(Actions));
 if (action === Actions.HELP) {
 	help();
-	process.exit();
+	process.exit();i
+} else if (action === Actions.CONJUGATE) {
+	let stem = getArg(3);
+	if (!stem) {
+		missingValueError('STEM');
+	}
+
+	[['Actional', 'ta'], ['Progressive', 'sat'], ['Descriptive','za']].forEach(([conjName, conj]) => {
+		console.log(conjName);
+		[['Present', 'ma'],['Past', 'to'], ['Future', 'ab']].forEach(([tenseName, tense]) => {
+			const table = [];
+			table.push({person: 'I', single: `o (sil)${tense} ${stem}${conj}`, plural: `ona (sil)${tense} ${stem}${conj}`});
+			table.push({person: 'II', single: `ve (sil)${tense} ${stem}${conj}`, plural: `vena (sil)${tense} ${stem}${conj}`});
+			table.push({person: 'III', single: `es (sil)${tense} ${stem}${conj}`, plural: `esna (sil)${tense} ${stem}${conj}`});
+			console.log(`\t${tenseName}`);
+			console.table(table);
+			console.log('');
+		});
+	});
 } else if (action === Actions.MAKE) {
 	let amount = getArgInt(3, NUM_WORDS);
 	let type = getArgWithin(4, TYPE, Object.values(Types));
