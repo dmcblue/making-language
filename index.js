@@ -32,24 +32,6 @@ function getArgWithin(index, name, possibleValues) {
 	return arg;
 }
 
-function help() {
-	console.log(
-`
-node index.js <ACTION> <...OPTIONS...>
-
-ACTION help
-	Prints this message
-
-ACTION make <NUM_WORDS> <TYPE> <MIN_LENGTH> <MAX_LENGTH>
-	Creates N words
-	NUM_WORDS	Number of words to generate
-	TYPE	adj,noun,verb
-	MIN_LENGTH Minimum length in characters of each word
-	MAX_LENGTH Maximum length in characters of each word
-`
-	);
-}
-
 function error(message) {
 	console.log(`ERROR: ${message}`);
 	help();
@@ -83,8 +65,28 @@ const Types = Object.freeze({
 	VERB: 'verb'
 });
 
+
+function help() {
+	console.log(
+`
+node index.js <ACTION> <...OPTIONS...>
+
+ACTION help
+	Prints this message
+
+ACTION make <NUM_WORDS> <TYPE> <MIN_LENGTH> <MAX_LENGTH>
+	Creates N words
+	NUM_WORDS	Number of words to generate
+	TYPE	${Object.values(Types).join(',')}
+	MIN_LENGTH Minimum length in characters of each word
+	MAX_LENGTH Maximum length in characters of each word
+`
+	);
+}
+
 let action = getArgWithin(2, ACTION, Object.values(Actions));
 if (action === Actions.HELP) {
+	help();
 	process.exit();
 } else if (action === Actions.MAKE) {
 	let amount = getArgInt(3, NUM_WORDS);
