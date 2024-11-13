@@ -1,0 +1,20 @@
+{
+  "name": "making-language",
+  "version": "1.0.0",
+  "description": "[Blog](https://makinglanguage.tumblr.com/)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dmcblue/making-language.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dmcblue/making-language/issues"
+  },
+  "homepage": "https://github.com/dmcblue/making-language#readme",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "type": "module"
+}

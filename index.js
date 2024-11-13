@@ -1,187 +1,111 @@
-const consonants = [
-	'm',
-	'n',
-	'b',
-	't',
-	'k',
-	'v',
-	's',
-	'z',
-	'j',
-	'l'
-];
+import {
+	getRandomInt,
+	makeAdj,
+	makeNoun,
+	makeVerb
+} from './making-language.js';
 
-const vowels = [
-	'i',
-	'u',
-	'o',
-	'e',
-	'a'
-];
+function getArg(index) {
+	return process.argv.length > index ? process.argv[index] : null;
+}
 
-function addLetter(word) {
-	const last = word[word.length - 1];
-
-	let areLastTwoConsonants = false;
-	if (word.length > 1) {
-		areLastTwoConsonants =
-			consonants.includes(word[word.length - 2])
-			&& consonants.includes(last);
+function getArgInt(index, name) {
+	const arg = getArg(index);
+	if (arg === null || arg === "") {
+		missingValueError(name);
 	}
-
-	let isLastVowel = vowels.includes(last);
-
-	let c = '';
-	if (!isLastVowel && (getRandomBoolean() || areLastTwoConsonants)) {
-		c = getRandomElement(vowels);
-	} else {
-		c = getRandomElement(consonants, last);
+	const iarg = parseInt(arg);
+	if (isNaN(iarg)) {
+		error(`Value '${arg}' for ${name} is not an Integer`);
 	}
-
-	return word + c;
+	return iarg;
 }
 
-function makeWord(length, badEndings = []) {
-	let str = '';
-
-	if (getRandomBoolean()) {
-		str += getRandomElement(vowels);
-		str += getRandomElement(consonants);
-	} else {
-		str += getRandomElement(consonants);
-		str += getRandomElement(vowels);
+function getArgWithin(index, name, possibleValues) {
+	const arg = getArg(index);
+	if (!arg) {
+		missingValueError(name);
 	}
-
-	// no hope, bail
-	if (str.length === length && badEndings.includes(str)) {
-		return str;
+	if (!possibleValues.includes(arg)) {
+		invalidValueError(name, arg);
 	}
-
-	let word, count = 0;
-	do {
-		word = finishWord(str, length);
-		count++;
-	} while(hasEndings(str, badEndings) && count < 100);
-
-	if (count === 100) {
-		console.log(`Inf Loop for '${str}' '${length}'`); 
-	}
-
-	return word;
+	return arg;
 }
 
-function finishWord(word, length) {
-	while(word.length < length - 1) {
-		word = addLetter(word);
-	}
+function help() {
+	console.log(
+`
+node index.js <ACTION> <...OPTIONS...>
 
-	// so last two letters are not consonants
-	while(word.length < length) {
-		let isLastVowel = vowels.includes(word[word.length - 1]);
+ACTION help
+	Prints this message
 
-		let c = '';
-		if (!isLastVowel) {
-			c = getRandomElement(vowels);
-		} else {
-			c = getRandomElement(consonants);
-		}
-
-		if (word[word.length - 1] !== c) {
-			word += c;
-		}
-	}
-
-	return word;
+ACTION make <NUM_WORDS> <TYPE> <MIN_LENGTH> <MAX_LENGTH>
+	Creates N words
+	NUM_WORDS	Number of words to generate
+	TYPE	adj,noun,verb
+	MIN_LENGTH Minimum length in characters of each word
+	MAX_LENGTH Maximum length in characters of each word
+`
+	);
 }
 
-function hasEndings(word, badEndings) {
-	let has = false;
-	badEndings.forEach((ending) => {
-		has = has || word.endsWith(ending);
-	});
-	return has;
+function error(message) {
+	console.log(`ERROR: ${message}`);
+	help();
+	process.exit(1);
 }
 
-function getRandomElement(array, except = null) {
-	let c;
-	do {
-		c = array[getRandomInt(array.length)];
-	} while(c === except);
-	return c;
+function missingValueError(name) {
+	error(`No value given for ${name}`);
 }
 
-function getRandomInt(min, max = null /*exclusive*/) {
-	if(max === null) {
-		max = min;
-		min = 0;
-	}
-
-	return Math.floor(Math.random() * (max - min)) + min;
+function invalidValueError(name, value) {
+	error(`Invalid value '${value}' for ${name}`);
 }
 
-function getRandomBoolean() {
-	return Math.random() < .5;
-}
+const
+	ACTION = 'ACTION',
+	MIN_LENGTH = 'MIN_LENGTH',
+	MAX_LENGTH = 'MAX_LENGTH',
+	NUM_WORDS = 'NUM_WORDS',
+	TYPE = 'TYPE'
+;
 
-function makeNoun(length) {
-	return makeWord(length, ['na']);
-}
+const Actions = Object.freeze({
+	HELP: 'help',
+	MAKE: 'make'
+});
 
-function makeVerb(length) {
-	return makeWord(length, ['ta', 'sat', 'za', 'ma', 'to', 'ab']);
-}
+const Types = Object.freeze({
+	ADJECTIVE: 'adj',
+	NOUN: 'noun',
+	VERB: 'verb'
+});
 
-function makeAdj(length) {
-	return makeWord(length, []);
-}
-
-function getArg(num) {
-	return process.argv.length > num ? process.argv[num] : null;
-}
-
-let action = getArg(2);
-if (action === 'help') {
-	console.log('node index.js make <Amount> <noun,verb> <min length> <max length>');
+let action = getArgWithin(2, ACTION, Object.values(Actions));
+if (action === Actions.HELP) {
 	process.exit();
-}
-if (action !== 'make') {
-	console.log('Unknown action');
-	process.exit(1);
-}
-let amount = parseInt(getArg(3));
-if (!Number.isInteger(amount)) {
-	console.log(`'${amount}' is not an integer`);
-	process.exit(1);
-}
-let type = getArg(4);
-if (!['noun', 'verb', 'adj'].includes(type)) {
-	console.log('NOT VALID TYPE');
-	process.exit(1);
-}
+} else if (action === Actions.MAKE) {
+	let amount = getArgInt(3, NUM_WORDS);
+	let type = getArgWithin(4, TYPE, Object.values(Types));
 
-let minLength = parseInt(getArg(5));
-let maxLength = parseInt(getArg(6));
-if (!Number.isInteger(minLength)) {
-	console.log(`'${minLength}' is not an integer`);
-	process.exit(1);
-}
-if (!Number.isInteger(maxLength)) {
-	console.log(`'${maxLength}' is not an integer`);
-	process.exit(1);
-}
-let fun;
+	let minLength = getArgInt(5, MIN_LENGTH);
+	let maxLength = getArgInt(6, MAX_LENGTH);
+	let fun;
 
-switch (type) {
-	case 'noun':
-		fun = makeNoun;
-		break;
-	case 'verb':
-		fun = makeVerb;
-		break;
-	case 'adj':
-		fun = makeAdj;
-}
+	switch (type) {
+		case 'noun':
+			fun = makeNoun;
+			break;
+		case 'verb':
+			fun = makeVerb;
+			break;
+		case 'adj':
+			fun = makeAdj;
+	}
 
-for(let i = 0; i < amount; i++) {
-	console.log(fun(getRandomInt(minLength, maxLength + 1)));
+	for(let i = 0; i < amount; i++) {
+		console.log(fun(getRandomInt(minLength, maxLength + 1)));
+	}
 }
